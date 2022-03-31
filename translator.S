@@ -28,15 +28,16 @@ add a7 x0 x0#int a7=0 store each command
 add s2 x0 x0#int s2=0 offset+a2
 add s3 x0 x0#int s3=0 offset+a3
 
+
 loop1:
 bge a4 a6 loop1_end#if a4>=length break;
 slli a5 a4 2 # a5=a4*4
 add s2 a2 a5#s2=a2+offset 
 lw a7 0(s2)#read a line from rvc_codes
 jal JudgeDigits#judge if the rvc_codes is 32 digit or 16 digit
+add t2 x0 x0 #int t2=0
+addi t2 x0 32#t2=32
 
-
-jal Translate
 
 
 
@@ -62,12 +63,24 @@ lw ra 4(sp)#restore return address
 addi sp sp 8
 jr ra #return
 
+
 JudgeDigits:#judge whether the rvc_code is 32 or 16
-addi sp sp -4
+addi sp sp -8
 sw ra 0(sp)
+sw a7 4(sp)#save a7 for further use
+add t1 x0 x0#t1=0
 
 
+loopForDigits:
+beq a7 x0 loopForDigitsEnd #if a7==0 break
+srli a7 a7 1 #a7=a7>>1 
+addi t1 t1 1#t1++
+j loopForDigits
+
+
+loopForDigitsEnd:
 
 lw ra 0(sp)
-addi sp sp 4
+lw a7 4(sp)#restore a7 from stack
+addi sp sp 8
 jr ra

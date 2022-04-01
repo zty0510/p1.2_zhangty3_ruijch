@@ -28,6 +28,8 @@ add a7 x0 x0 #offset of cnts a7=a4*4
 add s2 x0 x0 #s2=a3+a7
 add s3 x0 x0 #store command
 lw s4 lines_of_rvc_codes#s4=length
+addi t3 x0 2#t3=2
+addi t4 x0 4#t4=4
 
 loop1:
 bge a4 s4 loop1_end #end main loop
@@ -37,7 +39,12 @@ add a7 a7 a3#a7=a7+a3
 lw s3 0(a6)#read a command to s3
 jal judgeType #check if its 32 bit or 16 bit and update offset
 
+beq t2 t3 SixteenTrans #if 16 bit
+beq t2 t4 ThirttTrans # if 32 bit
 
+
+
+loop1_middle:
 addi a4 a4 1#a4++
 j loop1#loop
 
@@ -69,4 +76,13 @@ lw ra 0(sp)
 lw s3 4(sp)#restore command
 addi sp sp 8
 jr ra
+
+SixteenTrans:#16 bit translate
+
+j loop1_middle #return
+
+ThirttTrans:#32 bit translate
+
+j loop1_middle #return
+
 

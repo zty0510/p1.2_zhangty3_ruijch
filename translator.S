@@ -22,65 +22,51 @@ cnts:
 la a2 rvc_codes #a2 points to the rvc_code array
 la a3 cnts #a3 points to the cnts array
 add a4 x0 x0#int a4=0 
-add a5 x0 x0#int a5=0 offset of a4 a5=a4*4
-lw a6 lines_of_rvc_codes #a6=length of rvc_code array
-add a7 x0 x0#int a7=0 store each command
-add s2 x0 x0#int s2=0 offset+a2
-add s3 x0 x0#int s3=0 offset+a3
-
+add a5 x0 x0#int a5=0 offset of a2
+add a6 x0 x0#a6 a2+a5
+add a7 x0 x0 #offset of cnts a7=a4*4
+add s2 x0 x0 #s2=a3+a7
+add s3 x0 x0 #store command
+lw s4 lines_of_rvc_codes#s4=length
 
 loop1:
-bge a4 a6 loop1_end#if a4>=length break;
-slli a5 a4 2 # a5=a4*4
-add s2 a2 a5#s2=a2+offset 
-lw a7 0(s2)#read a line from rvc_codes
-jal JudgeDigits#judge if the rvc_codes is 32 digit or 16 digit
-add t2 x0 x0 #int t2=0
-addi t2 x0 32#t2=32
-
-
+bge a4 s4 loop1_end #end main loop
+add a6 a2 a5#update pointer
+slli a7 a4 2#a7=a4*4
+add a7 a7 a3#a7=a7+a3
+lw s3 0(a6)#read a command to s3
+jal judgeType #check if its 32 bit or 16 bit and update offset
 
 
 addi a4 a4 1#a4++
-j loop1
-
+j loop1#loop
 
 loop1_end:
-
 add	   a1, x0, x0
 addi   a0, x0, 17
-ecall
-
-Translate:#translate rvc to riscv
-addi sp sp -8
-sw a7 0(sp)#save rvc_code
-sw ra 4(sp)#save return address
+ecall#end 
 
 
-
-lw a7 0(sp)#restore a7
-lw ra 4(sp)#restore return address
-addi sp sp 8
-jr ra #return
-
-
-JudgeDigits:#judge whether the rvc_code is 32 or 16
+judgeType:
 addi sp sp -8
 sw ra 0(sp)
-sw a7 4(sp)#save a7 for further use
-add t1 x0 x0#t1=0
+sw s3 4(sp)#save command 
+addi t1 x0 0b000000000000000000000000000000011 #t1
+and s3 s3 t1#get the last two bits
+beq s3 t1 ThirtyTwo #if ture jump to 32 bits update
+addi a5 a5 2 #add 16 bits offset to a5
+addi t2 x0 2#t2=2
+sw t2 0(a7)#save 2 to cnts
+j judgeType_end#end judgeType
 
+ThirtyTwo:
+addi a5 a5 4 #add 32 bits offset to a5
+addi t2 x0 4 #t2=4
+sw t2 0(a7)#save 4 to cnts
 
-loopForDigits:
-beq a7 x0 loopForDigitsEnd #if a7==0 break
-srli a7 a7 1 #a7=a7>>1 
-addi t1 t1 1#t1++
-j loopForDigits
-
-
-loopForDigitsEnd:
-
+judgeType_end:
 lw ra 0(sp)
-lw a7 4(sp)#restore a7 from stack
+lw s3 4(sp)#restore command
 addi sp sp 8
 jr ra
+

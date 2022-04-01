@@ -1,19 +1,33 @@
-#   Project 1.2 RVC instructions to RISC-V instructions in RISC-V
+.data
 
-#   You can suppose you will get the number of machine codes you should translate from 
-#   "lines_of_rvc_codes" and get the 16 or 32 bits-machine codes from "rvc_codes". 
-#   Both of them are stored in file "input.S"
+# Constant integer specifying the lines of RVC codes
 
-#   When we test your project, we will change the input files content.
+# DO NOT MODIFY THIS VARIABLE
+.globl lines_of_rvc_codes
+lines_of_rvc_codes:
+    .word 2
 
-# DO NOT REMOVE THIS LINE WHEN SUBMITTING
-.import input.S
 
+# RVC codes, 16-bits instructions mixed with 32-bits instructions
+# A 16/32-bits binary number represents one line of rvc code.
+# You can suppose all of the input codes are valid. 
+
+# DO NOT MODIFY THIS VARIABLE
+.globl rvc_codes
+rvc_codes:
+    
+    .half 0b0100001110000001
+    .half 0b0100001110000001
+
+
+    
+    
 # Your code to convert the RVC codes to RVI codes.
 .data
 .globl cnts #store the length of each instuction
 cnts:
 	.space 1000
+
 
 
 # Exit with error code 0
@@ -49,6 +63,8 @@ addi a4 a4 1#a4++
 j loop1#loop
 
 loop1_end:
+
+
 add	   a1, x0, x0
 addi   a0, x0, 17
 ecall#end 
@@ -77,12 +93,141 @@ lw s3 4(sp)#restore command
 addi sp sp 8
 jr ra
 
+
+
+
 SixteenTrans:#16 bit translate
 
+addi sp sp -8
+sw s3 0(sp)#save command
+add s5 x0 s3 #s5=command
+addi t1 x0 0b000000000000000000000000000000011 #t1
+and s3 s3 t1#get the last two bits
+addi t5 x0 0b000000000000000000000000000000010#t5
+beq s3 t5 OneZeroOp #op 10
+addi t5 x0 0b000000000000000000000000000000001#t5
+beq s3 t5 ZeroOneOp #op 01
+
+SixteenTrans_middle:
+
+
+
+
+
+lw s3 0(sp)#restore s3
+addi sp sp 8
 j loop1_middle #return
+
+
 
 ThirttTrans:#32 bit translate
 
 j loop1_middle #return
 
 
+
+OneZeroOp:#op 10
+
+
+
+
+
+
+
+ZeroOneOp:#op 01
+addi sp sp -4
+sw s5 0(sp) #save command to stack
+li t5 0b000000000000000001111110000000000#get funct6
+and s5 s5 t5#get funct6
+li t6 0b000000000000000001000110000000000#if CA format
+beq s5 t6 CaFormat#if it is CA format
+
+lw s5 0(sp)#restore s5
+li t5 0b000000000000000001110000000000000#get funct3
+and s5 s5 t5#get funct3
+li t6 0b000000000000000000100000000000000#li
+beq s5 t6 CLI #cli
+li t6 0b000000000000000000110000000000000#lui
+beq s5 t6 CLUI #clui
+li t6 0b000000000000000000000000000000000#addi
+beq s5 t6 CAADI #addi
+li t6 0b00000000000000001100000000000000#beqz
+beq s5 t6 CBEQZ
+li t6 0b000000000000000001110000000000000#bnez
+beq s5 t6 CBNEZ#bnez
+
+
+
+ZeroOneOp_end:
+lw s5 0(sp)#restore command
+addi sp sp 4
+j SixteenTrans_middle#return
+
+
+CLI:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b000000000000000000000111110000000#reg
+and s7 s5 t6 #get reg store it to s7
+srli s7 s7 7#put it to low bits
+li t6 0b000000000000000000000000001111100#imm[4:0]
+and s8 s5 t6#get imm[4:0]and store it to s8
+srli s8 s8 2#puit it to low bits
+li t6 0b000000000000000000001000000000000#imm[5]
+and s9 s5 t6#get imm[5] and put it to s9
+srli s9 s9 8#put it to the 5th bit
+add s9 s9 s8#s9=imm[5:0]
+li s6 0b000000000000000000000000000010011	#s6 is the answer 
+slli s9 s9 20
+add s6 s6 s9#add imm to answer
+slli s7 s7 7
+add s6 s6 s7#add rd to answer
+jal PrintAnswer
+j ZeroOneOp_end#return
+
+
+
+CLUI:
+j ZeroOneOp_end#return
+
+CAADI:
+j ZeroOneOp_end#return
+
+CaFormat:
+j ZeroOneOp_end#return
+
+CBEQZ:
+j ZeroOneOp_end#return
+
+CBNEZ:
+j ZeroOneOp_end#return
+
+PrintAnswer:
+addi sp sp -16
+sw t4 0(sp)
+sw s6 4(sp)
+sw t5 8(sp)
+sw t3 12(sp)
+addi t5 x0 31#t5=0
+addi t4 x0 32#t4=32
+addi t3 x0 0#t3=0
+PrintLoop:
+bge t3 t4 PrintEnd
+lw s6 4(sp)#restore s6
+sll s6 s6 t3
+srli s6 s6 31
+add a1 x0 s6#write s6 to a1
+addi a0 x0 1
+ecall#print
+addi t3 t3 1#t3++
+j PrintLoop#loop
+
+PrintEnd:
+addi a1 x0 10
+addi a0 x0 11#print \n
+ecall
+lw t4 0(sp)
+lw s6 4(sp)
+lw t5 8(sp)
+lw t3 12(sp)
+addi sp sp 16
+jr ra

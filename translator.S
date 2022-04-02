@@ -16,7 +16,9 @@ lines_of_rvc_codes:
 .globl rvc_codes
 rvc_codes:
     
-    .half 0b1001100011011001
+    .half 0b0110001010001101
+
+
 
 
 
@@ -211,6 +213,24 @@ j ZeroOneOp_end#return
 
 
 CLUI:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b000000000000000000000111110000000#reg
+and s7 s5 t6 #get reg store it to s7
+srli s7 s7 7#put it to low bits
+li t6 0b000000000000000000000000001111100#imm[16:12]
+and s8 s5 t6#get imm[16:12]and store it to s8
+srli s8 s8 2#puit it to low bits
+li t6 0b000000000000000000001000000000000#imm[17]
+and s9 s5 t6#get imm[17] and put it to s9
+srli s9 s9 7#put it to the 6th bit
+add s9 s9 s8#s9=imm[5:0]
+li s6 0b000000000000000000000000000110111	#s6 is the answer 
+slli s7 s7 7
+slli s9 s9 12
+add s6 s6 s9#add imm to answer
+add s6 s6 s7#add rd to answer
+jal PrintAnswer
+
 j ZeroOneOp_end#return
 
 CAADI:
@@ -396,13 +416,14 @@ j ZeroOneOp_end#return
 
 
 
-j ZeroOneOp_end#return
 
 CBEQZ:
 j ZeroOneOp_end#return
 
 CBNEZ:
 j ZeroOneOp_end#return
+
+
 
 PrintAnswer:
 addi sp sp -16

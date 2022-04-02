@@ -16,7 +16,8 @@ lines_of_rvc_codes:
 .globl rvc_codes
 rvc_codes:
     
-    .half 0b0000001101010001
+    .half 0b1000000001010001
+
 
    
 
@@ -159,6 +160,8 @@ li t6 0b00000000000000001100000000000000#beqz
 beq s5 t6 CBEQZ
 li t6 0b000000000000000001110000000000000#bnez
 beq s5 t6 CBNEZ#bnez
+li t6 0b000000000000000001000000000000000#srli or srai or andi
+beq s5 t6 srlai_judge
 
 
 
@@ -210,7 +213,7 @@ li t6 0b000000000000000000000111110000000#reg
 and s7 s5 t6 #get reg store it to s7
 srli s7 s7 7#put it to low bits
 li t6 0b000000000000000000000000001111100#imm[4:0]
-and s8 s5 t6#get imm[4:0]and store it to s8
+and s8 s5 t6#get imm[4:0]and store it to s8 
 srli s8 s8 2#puit it to low bits
 li t6 0b000000000000000000001000000000000#imm[5]
 and s9 s5 t6#get imm[5] and put it to s9
@@ -240,6 +243,9 @@ jal PrintAnswer
 j ZeroOneOp_end#return
 
 CaFormat:
+
+
+
 j ZeroOneOp_end#return
 
 CBEQZ:
@@ -277,4 +283,112 @@ lw s6 4(sp)
 lw t5 8(sp)
 lw t3 12(sp)
 addi sp sp 16
+jr ra
+
+srlai_judge:
+lw s5 0(sp)#restore s5 from stack
+li t5 0b000000000000000000000110000000000#get funct2
+and s5 s5 t5#get funct2
+li t6 0b000000000000000000000000000000000#srli
+beq s5 t6 csrli
+li t6 0b000000000000000000000010000000000#srai
+beq s5 t6 csrai
+li t6 0b000000000000000000000100000000000#andi
+beq s5 t6 candi
+
+
+
+csrli:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b000000000000000000000001110000000#reg
+and s7 s5 t6 #get reg store it to s7
+srli s7 s7 7#put it to low bits
+jal mapReg #get 5 bits reg 7
+
+li t6 0b000000000000000000000000001111100#imm[4:0]
+and s8 s5 t6#get imm[4:0]and store it to s8 
+srli s8 s8 2#puit it to low bits
+li t6 0b000000000000000000001000000000000#imm[5]
+and s9 s5 t6#get imm[5] and put it to s9
+srli s9 s9 7#put it to the 6th bit
+li s6 0b000000000000000000101000000010011
+add s9 s9 s8#imm[5:0]
+slli s9 s9 20
+add s6 s6 s9#add imm to answer
+slli s7 s7 7
+add s6 s6 s7#add rd to answer
+slli s7 s7 8 #add rs1 to answer
+add s6 s6 s7
+jal PrintAnswer
+
+
+j ZeroOneOp_end#return
+
+
+
+j ZeroOneOp_end#return
+
+csrai:
+j ZeroOneOp_end#return
+
+candi:
+j ZeroOneOp_end#return
+
+mapReg:#s7 store the reg to be mapped,and store the return reg into s7
+addi sp sp -4
+sw t5 0(sp)
+li t5 0b000000
+beq t5 s7 mapZero#s7=000
+li t5 0b000001
+beq t5 s7 mapOne#s7=001
+li t5 0b000010
+beq t5 s7 mapTwo#s7=010
+li t5 0b000011
+beq t5 s7 mapThree#s7=011
+li t5 0b000100
+beq t5 s7 mapFour#s7=012
+li t5 0b000101
+beq t5 s7 mapFive#s7=013
+li t5 0b000110
+beq t5 s7 mapSix#s7=014
+li t5 0b000111
+beq t5 s7 mapSeven#s7=015
+
+
+mapZero:
+li s7 8
+j mapReg_end
+
+mapOne:
+li s7 9
+j mapReg_end
+
+mapTwo:
+li s7 10
+j mapReg_end
+
+
+mapThree:
+li s7 11
+j mapReg_end
+
+mapFour:
+li s7 12
+j mapReg_end
+
+mapFive:
+li s7 13
+j mapReg_end
+
+mapSix:
+li s7 14
+j mapReg_end
+
+mapSeven:
+li s7 15
+j mapReg_end
+
+mapReg_end:
+lw t5 0(sp)
+addi sp sp 4
 jr ra

@@ -5,7 +5,7 @@
 # DO NOT MODIFY THIS VARIABLE
 .globl lines_of_rvc_codes
 lines_of_rvc_codes:
-    .word 2
+    .word 1
 
 
 # RVC codes, 16-bits instructions mixed with 32-bits instructions
@@ -16,8 +16,12 @@ lines_of_rvc_codes:
 .globl rvc_codes
 rvc_codes:
     
-    .half 0b0100001110000001
-    .half 0b0100001110000001
+    .half 0b0000001101010001
+
+   
+
+
+
 
 
     
@@ -174,9 +178,20 @@ and s8 s5 t6#get imm[4:0]and store it to s8
 srli s8 s8 2#puit it to low bits
 li t6 0b000000000000000000001000000000000#imm[5]
 and s9 s5 t6#get imm[5] and put it to s9
-srli s9 s9 8#put it to the 5th bit
+srli s9 s9 7#put it to the 6th bit
+li s10 0b00100000 # negative
+beq s9 s10 NegtiveNum
 add s9 s9 s8#s9=imm[5:0]
 li s6 0b000000000000000000000000000010011	#s6 is the answer 
+
+j cli_ans
+
+NegtiveNum:
+add s9 s9 s8#s9=imm[5:0]
+li s6 4227858451	#s6 is the answer 
+
+cli_ans:
+
 slli s9 s9 20
 add s6 s6 s9#add imm to answer
 slli s7 s7 7
@@ -190,6 +205,38 @@ CLUI:
 j ZeroOneOp_end#return
 
 CAADI:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b000000000000000000000111110000000#reg
+and s7 s5 t6 #get reg store it to s7
+srli s7 s7 7#put it to low bits
+li t6 0b000000000000000000000000001111100#imm[4:0]
+and s8 s5 t6#get imm[4:0]and store it to s8
+srli s8 s8 2#puit it to low bits
+li t6 0b000000000000000000001000000000000#imm[5]
+and s9 s5 t6#get imm[5] and put it to s9
+srli s9 s9 7#put it to the 6th bit
+li s10 0b00100000 # negative
+beq s9 s10 NegtiveNum_addi
+add s9 s9 s8#s9=imm[5:0]
+li s6 0b000000000000000000000000000010011	#s6 is the answer 
+
+j caddi_ans
+
+NegtiveNum_addi:
+add s9 s9 s8#s9=imm[5:0]
+li s6 4227858451	#s6 is the answer 
+
+caddi_ans:
+
+slli s9 s9 20
+add s6 s6 s9#add imm to answer
+slli s7 s7 7
+add s6 s6 s7#add rd to answer
+slli s7 s7 8 #add rs1 to answer
+add s6 s6 s7
+jal PrintAnswer
+
+
 j ZeroOneOp_end#return
 
 CaFormat:

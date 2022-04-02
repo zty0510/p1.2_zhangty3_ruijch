@@ -16,7 +16,12 @@ lines_of_rvc_codes:
 .globl rvc_codes
 rvc_codes:
     
-    .half 0b1000000001010001
+    .half 0b1001100011011001
+
+
+
+
+	
 
 
    
@@ -162,6 +167,7 @@ li t6 0b000000000000000001110000000000000#bnez
 beq s5 t6 CBNEZ#bnez
 li t6 0b000000000000000001000000000000000#srli or srai or andi
 beq s5 t6 srlai_judge
+
 
 
 
@@ -326,12 +332,69 @@ j ZeroOneOp_end#return
 
 
 
-j ZeroOneOp_end#return
-
 csrai:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b000000000000000000000001110000000#reg
+and s7 s5 t6 #get reg store it to s7
+srli s7 s7 7#put it to low bits
+jal mapReg #get 5 bits reg 7
+
+li t6 0b000000000000000000000000001111100#imm[4:0]
+and s8 s5 t6#get imm[4:0]and store it to s8 
+srli s8 s8 2#puit it to low bits
+li t6 0b000000000000000000001000000000000#imm[5]
+and s9 s5 t6#get imm[5] and put it to s9
+srli s9 s9 7#put it to the 6th bit
+li s6 0b001000000000000000101000000010011
+add s9 s9 s8#imm[5:0]
+slli s9 s9 20
+add s6 s6 s9#add imm to answer
+slli s7 s7 7
+add s6 s6 s7#add rd to answer
+slli s7 s7 8 #add rs1 to answer
+add s6 s6 s7
+jal PrintAnswer
+
 j ZeroOneOp_end#return
 
 candi:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b000000000000000000000001110000000#reg
+and s7 s5 t6 #get reg store it to s7
+srli s7 s7 7#put it to low bits
+jal mapReg#convert reg
+li t6 0b000000000000000000000000001111100#imm[4:0]
+and s8 s5 t6#get imm[4:0]and store it to s8 
+srli s8 s8 2#puit it to low bits
+li t6 0b000000000000000000001000000000000#imm[5]
+and s9 s5 t6#get imm[5] and put it to s9
+srli s9 s9 7#put it to the 6th bit
+li s10 0b00100000 # negative
+beq s9 s10 NegtiveNum_andi
+add s9 s9 s8#s9=imm[5:0]
+li s6 0b000000000000000000111000000010011	#s6 is the answer 
+
+j candi_ans
+
+NegtiveNum_andi:
+add s9 s9 s8#s9=imm[5:0]
+li s6 4227887123	#s6 is the answer 
+
+candi_ans:
+
+slli s9 s9 20
+add s6 s6 s9#add imm to answer
+slli s7 s7 7
+add s6 s6 s7#add rd to answer
+slli s7 s7 8 #add rs1 to answer
+add s6 s6 s7
+jal PrintAnswer
+
+
+j ZeroOneOp_end#return
+
+
+
 j ZeroOneOp_end#return
 
 mapReg:#s7 store the reg to be mapped,and store the return reg into s7

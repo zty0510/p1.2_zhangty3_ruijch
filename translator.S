@@ -248,7 +248,151 @@ jal PrintAnswer
 
 j ZeroOneOp_end#return
 
+
+
 CaFormat:
+lw s5 0(sp)#restore s5 which is the copy of codes
+srli s5 s5 5#shift left 5 bits
+li t5 0b11
+and s5 s5 t5#get funct2
+li t6 0b11
+beq s5 t6 AND
+li t6 0b10
+beq s5 t6 OR
+li t6 0b01
+beq s5 t6 XOR
+li t6 0b00
+beq s5 t6 SUB
+
+
+AND:
+lw t1 0(sp)#t1 is the copy of codes
+li t2 0b1110000000
+and t2 t2 t1#t2 = rd / rs1
+li t0 0b11100
+and t0 t0 t1#t0 = rs2   
+#mapReg
+srai t2 t2 7
+srai t0 t0 2
+mv s7 t2
+jal mapReg
+mv t2 s7
+
+mv s7 t0
+jal mapReg
+mv t0 s7
+
+li s6 0#initialize s6 which is the answer 
+slli t0 t0 20#shift rs2
+slli t2 t2 15#shift rs1
+add s6 s6 t0
+add s6 s6 t2
+
+srli t2 t2 8#shift rd from rs1
+add s6 s6 t2
+li t0 0b111000000110011#t0 = opcode + funct3
+add s6 s6 t0#merge ans
+jal PrintAnswer
+j ZeroOneOp_end#return
+
+
+
+OR:
+lw t1 0(sp)#t1 is the copy of codes
+li t2 0b1110000000
+and t2 t2 t1#t2 = rd / rs1
+li t0 0b11100
+and t0 t0 t1#t0 = rs2   
+#mapReg
+srai t2 t2 7
+srai t0 t0 2
+mv s7 t2
+jal mapReg
+mv t2 s7
+
+mv s7 t0
+jal mapReg
+mv t0 s7
+
+li s6 0#initialize s6 which is the answer 
+slli t0 t0 20#shift rs2
+slli t2 t2 15#shift rs1
+add s6 s6 t0
+add s6 s6 t2
+
+srli t2 t2 8#shift rd from rs1
+add s6 s6 t2
+li t0 0b110000000110011#t0 = opcode + funct3
+add s6 s6 t0#merge ans
+jal PrintAnswer
+j ZeroOneOp_end#return
+
+
+
+XOR:
+lw t1 0(sp)#t1 is the copy of codes
+li t2 0b1110000000
+and t2 t2 t1#t2 = rd / rs1
+li t0 0b11100
+and t0 t0 t1#t0 = rs2   
+#mapReg
+srai t2 t2 7
+srai t0 t0 2
+mv s7 t2
+jal mapReg
+mv t2 s7
+
+mv s7 t0
+jal mapReg
+mv t0 s7
+
+li s6 0#initialize s6 which is the answer 
+slli t0 t0 20#shift rs2
+slli t2 t2 15#shift rs1
+add s6 s6 t0
+add s6 s6 t2
+
+srli t2 t2 8#shift rd from rs1
+add s6 s6 t2
+li t0 0b100000000110011#t0 = opcode + funct3
+add s6 s6 t0#merge ans
+jal PrintAnswer
+j ZeroOneOp_end#return
+
+
+SUB:
+lw t1 0(sp)#t1 is the copy of codes
+li t2 0b1110000000
+and t2 t2 t1#t2 = rd / rs1
+li t0 0b11100
+and t0 t0 t1#t0 = rs2   
+#mapReg
+srai t2 t2 7
+srai t0 t0 2
+mv s7 t2
+jal mapReg
+mv t2 s7
+
+mv s7 t0
+jal mapReg
+mv t0 s7
+
+li s6 0#initialize s6 which is the answer 
+slli t0 t0 20#shift rs2
+slli t2 t2 15#shift rs1
+add s6 s6 t0
+add s6 s6 t2
+
+srli t2 t2 8#shift rd from rs1
+add s6 s6 t2
+li t0 0b000000000110011#t0 = opcode + funct3
+add s6 s6 t0#merge ans
+li t0 0100000
+slli t0 t0 25#t0 = funct7=010 0000
+add s6 s6 t0
+jal PrintAnswer
+j ZeroOneOp_end#return
+
 
 
 

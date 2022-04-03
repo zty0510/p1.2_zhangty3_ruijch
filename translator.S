@@ -338,6 +338,7 @@ li t6 1
 beq t5 t6 LW_neg
 
 LW_continue:
+slli t4 t4 2
 #now t4 = imm[11:0]
 slli t4 t4 20
 add s6 s6 t4
@@ -388,6 +389,7 @@ add t4 t4 t6# now t4 = imm[5:2]
 li t6 1
 beq t5 t6 SW_neg
 SW_continue:
+slli t4 t4 2
 #now t4 = imm[11:0]
 mv t5 t4
 srli t5 t5 5
@@ -405,12 +407,10 @@ j ZeroZeroOp_end#return
 
 LW_neg:
 neg t4 t4
-slli t4 t4 2
 j LW_continue
 
 SW_neg:
 neg t4 t4
-slli t4 t4 2
 j SW_continue
 
 

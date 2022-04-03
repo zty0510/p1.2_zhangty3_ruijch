@@ -1,38 +1,13 @@
-.data
+#   Project 1.2 RVC instructions to RISC-V instructions in RISC-V
 
-# Constant integer specifying the lines of RVC codes
+#   You can suppose you will get the number of machine codes you should translate from 
+#   "lines_of_rvc_codes" and get the 16 or 32 bits-machine codes from "rvc_codes". 
+#   Both of them are stored in file "input.S"
 
-# DO NOT MODIFY THIS VARIABLE
-.globl lines_of_rvc_codes
-lines_of_rvc_codes:
-    .word 1
+#   When we test your project, we will change the input files content.
 
-
-# RVC codes, 16-bits instructions mixed with 32-bits instructions
-# A 16/32-bits binary number represents one line of rvc code.
-# You can suppose all of the input codes are valid. 
-
-# DO NOT MODIFY THIS VARIABLE
-.globl rvc_codes
-rvc_codes:
-    
-    .half 0b0110001010001101
-
-
-
-
-
-
-	
-
-
-   
-
-
-
-
-
-    
+# DO NOT REMOVE THIS LINE WHEN SUBMITTING
+.import input.S
     
 # Your code to convert the RVC codes to RVI codes.
 .data
@@ -44,7 +19,7 @@ cnts:
 
 # Exit with error code 0
 .text
-
+li s11 0#s11 store which command it is(dont modify)
 la a2 rvc_codes #a2 points to the rvc_code array
 la a3 cnts #a3 points to the cnts array
 add a4 x0 x0#int a4=0 
@@ -57,6 +32,26 @@ lw s4 lines_of_rvc_codes#s4=length
 addi t3 x0 2#t3=2
 addi t4 x0 4#t4=4
 
+loop_store:
+bge a4 s4 loop_store_end#end traverse loop
+add a6 a2 a5#update pointer
+slli a7 a4 2#a7=a4*4
+add a7 a7 a3#a7=a7+a3
+lw s3 0(a6)#read a command to s3
+jal judgeType #check if its 32 bit or 16 bit and update offset
+
+addi a4 a4 1
+j loop_store
+
+loop_store_end:
+add a4 x0 x0#int a4=0 
+add a5 x0 x0#int a5=0 offset of a2
+add a6 x0 x0#a6 a2+a5
+add a7 x0 x0 #offset of cnts a7=a4*4
+add s2 x0 x0 #s2=a3+a7
+add s3 x0 x0 #store command
+
+
 loop1:
 bge a4 s4 loop1_end #end main loop
 add a6 a2 a5#update pointer
@@ -65,12 +60,16 @@ add a7 a7 a3#a7=a7+a3
 lw s3 0(a6)#read a command to s3
 jal judgeType #check if its 32 bit or 16 bit and update offset
 
+
+
 beq t2 t3 SixteenTrans #if 16 bit
 beq t2 t4 ThirttTrans # if 32 bit
 
 
 
 loop1_middle:
+
+addi s11 s11 1#cur_command++
 addi a4 a4 1#a4++
 j loop1#loop
 
@@ -133,7 +132,17 @@ j loop1_middle #return
 
 
 ThirttTrans:#32 bit translate
+addi sp sp -8
+sw s3 0(sp)#save command
+add s5 x0 s3 #s5=command
+li t1 0b000000000000000000000000000000011
+mv s6 s5
+jal PrintAnswer
 
+
+ThirttTrans_middle:
+lw s3 0(sp)#restore s3
+addi sp sp 8
 j loop1_middle #return
 
 
@@ -169,8 +178,10 @@ li t6 0b000000000000000001110000000000000#bnez
 beq s5 t6 CBNEZ#bnez
 li t6 0b000000000000000001000000000000000#srli or srai or andi
 beq s5 t6 srlai_judge
-
-
+li t6 0b000000000000000001010000000000000#j
+beq s5 t6 CJ
+li t6 0b000000000000000000010000000000000#jal
+beq s5 t6 CJAL
 
 
 ZeroOneOp_end:
@@ -620,3 +631,67 @@ mapReg_end:
 lw t5 0(sp)
 addi sp sp 4
 jr ra
+
+CJ:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b00000000000000000001111111111100#imm unordered
+and s7 t6 s5 #store imm unordered to s7
+mv s9 s7 #backup imm unorderd in s9
+li s8 0b0000 #s8 store imm
+slli s7 s7 26#get imm[3:1]
+srli s7 s7 29#get imm[3:1]
+add s8 s8 s7
+mv s7 s9 #restore s7
+slli s7 s7 29#get imm[5]
+srli s7 s7 31#get imm[5]
+slli s7 s7 4#get imm[5]
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 25#get imm[7]
+srli s7 s7 31#get imm[7]
+slli s7 s7 6#put to 7th bit
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 24#get imm[6]
+srli s7 s7 31#get imm[6]
+slli s7 s7 5#put to 6th bit
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 23#get imm[10]
+srli s7 s7 31#get imm[10]
+slli s7 s7 9#put to 10th bit
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 21#get imm[9:8]
+srli s7 s7 30#get imm[9:8]
+slli s7 s7 7#put to 8,9th bit
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 20#get imm[4]
+srli s7 s7 31#get imm[4]
+slli s7 s7 3#put to 4th bit
+add s8 s8 s7
+mv s7 s9
+srli s7 s7 12#get imm[11]
+
+li s10 0b0001#negative
+
+beq s7 s10 cj_neg#if imm[11]=1 negative
+li s6 0b00000000000000000000000001101111
+slli s8 s8 21
+add s6 s6 s8
+j cj_ans
+cj_neg:
+li s6 2148528239#ans
+slli s8 s8 21 
+add s6 s6 s8
+
+
+cj_ans:
+jal PrintAnswer
+
+j ZeroOneOp_end#return
+
+CJAL:
+li s6 0b00000000000000000000000011101111#ans
+j ZeroOneOp_end#return

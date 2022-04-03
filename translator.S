@@ -7,7 +7,30 @@
 #   When we test your project, we will change the input files content.
 
 # DO NOT REMOVE THIS LINE WHEN SUBMITTING
-.import input.S
+#.import input.S
+
+
+.data
+
+# Constant integer specifying the lines of RVC codes
+
+# DO NOT MODIFY THIS VARIABLE
+.globl lines_of_rvc_codes
+lines_of_rvc_codes:
+    .word 4
+
+
+# RVC codes, 16-bits instructions mixed with 32-bits instructions
+# A 16/32-bits binary number represents one line of rvc code.
+# You can suppose all of the input codes are valid. 
+
+# DO NOT MODIFY THIS VARIABLE
+.globl rvc_codes
+rvc_codes:
+.word 0b00000000101001000010010100100011
+.word 0b00000000100101000010010010100011
+.half 0b1100000000000000
+.word 0b00000000101001000010000110100011
 
 
 
@@ -327,7 +350,7 @@ srai t4 t4 10# t4 is imm[5:3]
 
 li t5 0b100000
 and t5 t5 t1
-srli t5 t5 5#t5 is imm[6] sign extended
+srli t5 t5 5#t5 is imm[6] 
 
 li t6 0b1000000
 and t6 t6 t1
@@ -337,10 +360,9 @@ slli t4 t4 3
 slli t6 t6 2
 add t4 t4 t6# now t4 = imm[5:0]
 
-li t6 1
-beq t5 t6 LW_neg
+slli t5 t5 5
+add t4 t4 t5# now t4 = imm[6:0]
 
-LW_continue:
 #now t4 = imm[11:0]
 slli t4 t4 20
 add s6 s6 t4
@@ -378,7 +400,7 @@ srai t4 t4 10# t4 is imm[5:3]
 
 li t5 0b100000
 and t5 t5 t1
-srli t5 t5 5#t5 is imm[6] sign extended
+srli t5 t5 5#t5 is imm[6] 
 
 li t6 0b1000000
 and t6 t6 t1
@@ -388,9 +410,9 @@ slli t4 t4 3
 slli t6 t6 2
 add t4 t4 t6# now t4 = imm[5:0]
 
-li t6 1
-beq t5 t6 SW_neg
-SW_continue:
+slli t5 t5 5
+add t4 t4 t5# now t4 = imm[6:0]
+
 #now t4 = imm[11:0]
 mv t5 t4
 srli t5 t5 5
@@ -405,14 +427,6 @@ jal PrintAnswer
 j ZeroZeroOp_end#return
 
 
-
-LW_neg:
-neg t4 t4
-j LW_continue
-
-SW_neg:
-neg t4 t4
-j SW_continue
 
 
 ####################################LW||||SW ##################################

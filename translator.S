@@ -60,7 +60,8 @@ add a7 a7 a3#a7=a7+a3
 lw s3 0(a6)#read a command to s3
 jal judgeType #check if its 32 bit or 16 bit and update offset
 
-
+addi t3 x0 2#t3=2
+addi t4 x0 4#t4=4
 
 beq t2 t3 SixteenTrans #if 16 bit
 beq t2 t4 ThirttTrans # if 32 bit
@@ -124,10 +125,6 @@ beq s3 t5 ZeroZeroOp#op 00
 
 
 SixteenTrans_middle:
-
-
-
-
 
 lw s3 0(sp)#restore s3
 addi sp sp 8

@@ -7,30 +7,30 @@
 #   When we test your project, we will change the input files content.
 
 # DO NOT REMOVE THIS LINE WHEN SUBMITTING
-#.import input.S
+.import input.S
 
 
-.data
+# .data
 
-# Constant integer specifying the lines of RVC codes
+# # Constant integer specifying the lines of RVC codes
 
-# DO NOT MODIFY THIS VARIABLE
-.globl lines_of_rvc_codes
-lines_of_rvc_codes:
-    .word 4
+# # DO NOT MODIFY THIS VARIABLE
+# .globl lines_of_rvc_codes
+# lines_of_rvc_codes:
+#     .word 4
 
 
-# RVC codes, 16-bits instructions mixed with 32-bits instructions
-# A 16/32-bits binary number represents one line of rvc code.
-# You can suppose all of the input codes are valid. 
+# # RVC codes, 16-bits instructions mixed with 32-bits instructions
+# # A 16/32-bits binary number represents one line of rvc code.
+# # You can suppose all of the input codes are valid. 
 
-# DO NOT MODIFY THIS VARIABLE
-.globl rvc_codes
-rvc_codes:
-.word 0b00000000101001000010010100100011
-.word 0b00000000100101000010010010100011
-.half 0b1100000000000000
-.word 0b00000000101001000010000110100011
+# # DO NOT MODIFY THIS VARIABLE
+# .globl rvc_codes
+# rvc_codes:
+# .word 0b00000000101001000010010100100011
+# .word 0b00000000100101000010010010100011
+# .half 0b1100000000000000
+# .word 0b00000000101001000010000110100011
 
 
 

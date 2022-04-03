@@ -1,13 +1,57 @@
-#   Project 1.2 RVC instructions to RISC-V instructions in RISC-V
+.data
 
-#   You can suppose you will get the number of machine codes you should translate from 
-#   "lines_of_rvc_codes" and get the 16 or 32 bits-machine codes from "rvc_codes". 
-#   Both of them are stored in file "input.S"
+# Constant integer specifying the lines of RVC codes
 
-#   When we test your project, we will change the input files content.
+# DO NOT MODIFY THIS VARIABLE
+.globl lines_of_rvc_codes
+lines_of_rvc_codes:
+    .word 16
 
-# DO NOT REMOVE THIS LINE WHEN SUBMITTING
-.import input.S
+
+# RVC codes, 16-bits instructions mixed with 32-bits instructions
+# A 16/32-bits binary number represents one line of rvc code.
+# You can suppose all of the input codes are valid. 
+
+# DO NOT MODIFY THIS VARIABLE
+.globl rvc_codes
+rvc_codes:
+    
+                      .half 0b1000000010000001
+    .half 0b1000010011010001
+    .word 0b00000000000101000001100101100011
+    .half 0b1000010000000001
+    .half 0b1011111111011101
+    .word 0b00000000101001000010010100100011
+    .word 0b00000000100101000010010010100011
+    .half 0b1100000000000000
+    .word 0b00000000101001000010000110100011
+    .half 0b1111110001110101
+    .word 0b00000000101001000010010100000011
+    .word 0b00000000100101000010010010000011
+    .half 0b0100000000000000
+    .half 0b1111100011100101
+    .word 0b00000000001101000010010100000011
+    .half 0b1011111111010001
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+  
+
+    
     
 # Your code to convert the RVC codes to RVI codes.
 .data
@@ -678,18 +722,66 @@ li s10 0b0001#negative
 
 beq s7 s10 cj_neg#if imm[11]=1 negative
 li s6 0b00000000000000000000000001101111
+slli s8 s8 1#imm[11:0]
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+li s7 0
+li s9 0#store number of commands jumped
+loop_calcOffset2:
+beq s8 s7 loop_calOffset2_end#s8==0 break;
+lw s7 0(s10)
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 4#s10--
+li s7 0
+j loop_calcOffset2#loop
+loop_calOffset2_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
 slli s8 s8 21
+srli s8 s8 1
 add s6 s6 s8
 j cj_ans
 cj_neg:
-li s6 2148528239#ans
-slli s8 s8 21 
+li s6 2149576815#ans
+
+addi s8 s8 0b010000000000
+slli s8 s8 1#imm[11:0]
+mv s10 s8
+lui s8 0xFFFFF
+add s8 s8 s10#get offset origin
+neg s8 s8#abs(s8)
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+addi s10 s10 -4
+li s7 0
+li s9 0#store number of commands jumped
+loop_calcOffset1:
+beq s8 s7 loop_calOffset1_end #if s8==0 break
+lw s7 0(s10)#store cnts[command]to s7
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 -4#s10--
+li s7 0
+j loop_calcOffset1
+loop_calOffset1_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+neg s8 s8
+slli s8 s8 21
+srli s8 s8 1
 add s6 s6 s8
+j cj_ans
 
-
+# li a0 1
+# mv a1 s8
+# ecall
 cj_ans:
 jal PrintAnswer
-
 j ZeroOneOp_end#return
 
 CJAL:

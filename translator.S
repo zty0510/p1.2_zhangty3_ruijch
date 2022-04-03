@@ -1,13 +1,28 @@
-#   Project 1.2 RVC instructions to RISC-V instructions in RISC-V
+.data
 
-#   You can suppose you will get the number of machine codes you should translate from 
-#   "lines_of_rvc_codes" and get the 16 or 32 bits-machine codes from "rvc_codes". 
-#   Both of them are stored in file "input.S"
+# Constant integer specifying the lines of RVC codes
 
-#   When we test your project, we will change the input files content.
+# DO NOT MODIFY THIS VARIABLE
+.globl lines_of_rvc_codes
+lines_of_rvc_codes:
+    .word 7
 
-# DO NOT REMOVE THIS LINE WHEN SUBMITTING
-.import input.S
+
+# RVC codes, 16-bits instructions mixed with 32-bits instructions
+# A 16/32-bits binary number represents one line of rvc code.
+# You can suppose all of the input codes are valid. 
+
+# DO NOT MODIFY THIS VARIABLE
+.globl rvc_codes
+rvc_codes:
+        .word 0b00000000000101000001100101100011
+    .half 0b1000010000000001
+    .half 0b1011111111011101
+    .word 0b00000000101001000010010100100011
+    .word 0b00000000100101000010010010100011
+    .half 0b1100000000000000
+    .word 0b00000000101001000010000110100011
+
 
 
 
@@ -161,9 +176,129 @@ li s8 0b000000000000000000000000001100011#B format need update
 beq t1 s8 updateOffset32
 mv s6 s5#else print directly
 jal PrintAnswer
+j ThirttTrans_middle
 updateOffset32:
+li s8 0b0000 #store imm ordered
+mv s6 s5#backup s5 in s6
+slli s5 s5 24 #get imm[11]
+srli s5 s5 31#get imm[11]
+slli s5 s5 10
+add s8 s8 s5
+mv s5 s6#restore s5
+slli s5 s5 20 #get imm[4:1]
+srli s5 s5 28#get imm[4:1]
+add s8 s8 s5
+mv s5 s6#restore s5
+slli s5 s5 1 #get imm[10:5]
+srli s5 s5 26
+slli s5 s5 4#get imm[10:5]
+add s8 s8 s5
+mv s5 s6#restore s5
+
+srli s5 s5 31#get imm[12]
+
+li s10 0b00000001111111111111000001111111#delete imm in original code
+and s6 s6 s10 #delete imm in original code
+li s10 0b00001#negative
+beq s5 s10 NegThirtyTwo#if imm[12]negative
+slli s5 s5 11
+add s8 s8 s5#imm[12:1]
+slli s8 s8 1#imm[12:0]
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+li s7 0
+li s9 0#store number of commands jumped
+loopThirtyTwoOff2:
+beq s8 s7 loopThirtyTwoOff2_end#s8==0 break;
+lw s7 0(s10)
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 4#s10++
+li s7 0
+j loopThirtyTwoOff2#loop
 
 
+loopThirtyTwoOff2_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+srli s8 s8 1#remove imm[0]
+mv s7 s8#store s8 in s7
+srli s8 s8 11#imm[12]
+slli s8 s8 31#imm[12]
+add s6 s6 s8
+mv s8 s7#restore s8
+slli s8 s8 22#imm[10:5]
+srli s8 s8 26#imm[10:5]
+slli s8 s8 25#imm[10:5]
+add s6 s6 s8
+mv s8 s7#restore s8
+slli s8 s8 28#imm[4:1]
+srli s8 s8 20#imm[4:1]
+add s6 s6 s8
+mv s8 s7#restore s8
+slli s8 s8 21#imm[11]
+srli s8 s8 31#imm[11]
+slli s8 s8 7#imm[11]
+add s6 s6 s8
+mv s8 s7#restore s8
+jal PrintAnswer
+
+
+j ThirttTrans_middle#end
+
+
+
+NegThirtyTwo:
+# slli s5 s5 11
+# add s8 s8 s5#imm[12:1]
+slli s8 s8 1#imm[11:0]
+mv s10 s8
+lui s8 0xFFFFF
+add s8 s8 s10#get offset origin
+neg s8 s8#abs(s8)
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+addi s10 s10 -4
+li s7 0
+li s9 0#store number of commands jumped
+loopThirtyTwoOff1:
+beq s8 s7 loopThirtyTwoOffEnd1 #if s8==0 break
+lw s7 0(s10)#store cnts[command]to s7
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 -4#s10--
+li s7 0
+j loopThirtyTwoOff1
+
+loopThirtyTwoOffEnd1:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+neg s8 s8#s8 store the newoffset
+srli s8 s8 1#remove imm[0]
+mv s7 s8#store s8 in s7
+srli s8 s8 11#imm[12]
+slli s8 s8 31#imm[12]
+add s6 s6 s8
+mv s8 s7#restore s8
+slli s8 s8 22#imm[10:5]
+srli s8 s8 26#imm[10:5]
+slli s8 s8 25#imm[10:5]
+add s6 s6 s8
+mv s8 s7#restore s8
+slli s8 s8 28#imm[4:1]
+srli s8 s8 20#imm[4:1]
+add s6 s6 s8
+mv s8 s7#restore s8
+slli s8 s8 21#imm[11]
+srli s8 s8 31#imm[11]
+slli s8 s8 7#imm[11]
+add s6 s6 s8
+mv s8 s7#restore s8
+jal PrintAnswer
 
 ThirttTrans_middle:
 lw s3 0(sp)#restore s3

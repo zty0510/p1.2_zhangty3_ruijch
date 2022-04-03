@@ -1,42 +1,13 @@
-.data
+#   Project 1.2 RVC instructions to RISC-V instructions in RISC-V
 
-# Constant integer specifying the lines of RVC codes
+#   You can suppose you will get the number of machine codes you should translate from 
+#   "lines_of_rvc_codes" and get the 16 or 32 bits-machine codes from "rvc_codes". 
+#   Both of them are stored in file "input.S"
 
-# DO NOT MODIFY THIS VARIABLE
-.globl lines_of_rvc_codes
-lines_of_rvc_codes:
-    .word 7
+#   When we test your project, we will change the input files content.
 
-
-# RVC codes, 16-bits instructions mixed with 32-bits instructions
-# A 16/32-bits binary number represents one line of rvc code.
-# You can suppose all of the input codes are valid. 
-
-# DO NOT MODIFY THIS VARIABLE
-.globl rvc_codes
-rvc_codes:
-        .word 0b00000000000101000001100101100011
-    .half 0b1000010000000001
-    .half 0b1011111111011101
-    .word 0b00000000101001000010010100100011
-    .word 0b00000000100101000010010010100011
-    .half 0b1100000000000000
-    .word 0b00000000101001000010000110100011
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
+# DO NOT REMOVE THIS LINE WHEN SUBMITTING
+.import input.S
 
 
   

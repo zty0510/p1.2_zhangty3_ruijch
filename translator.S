@@ -178,14 +178,21 @@ j loop1_middle #return
 ThirttTrans:#32 bit translate
 addi sp sp -8
 sw s3 0(sp)#save command
+sw s8 4(sp)
 add s5 x0 s3 #s5=command
-li t1 0b000000000000000000000000000000011
-mv s6 s5
+li t1 0b000000000000000000000000001111111#get op code
+and t1 t1 s5#get op code
+li s8 0b000000000000000000000000001100011#B format need update
+beq t1 s8 updateOffset32
+mv s6 s5#else print directly
 jal PrintAnswer
+updateOffset32:
+
 
 
 ThirttTrans_middle:
 lw s3 0(sp)#restore s3
+lw s8 4(sp)
 addi sp sp 8
 j loop1_middle #return
 

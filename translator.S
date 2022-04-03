@@ -360,7 +360,7 @@ slli t4 t4 3
 slli t6 t6 2
 add t4 t4 t6# now t4 = imm[5:0]
 
-slli t5 t5 5
+slli t5 t5 6
 add t4 t4 t5# now t4 = imm[6:0]
 
 #now t4 = imm[11:0]
@@ -400,7 +400,7 @@ srai t4 t4 10# t4 is imm[5:3]
 
 li t5 0b100000
 and t5 t5 t1
-srli t5 t5 5#t5 is imm[6] 
+srli t5 t5 6#t5 is imm[6] 
 
 li t6 0b1000000
 and t6 t6 t1

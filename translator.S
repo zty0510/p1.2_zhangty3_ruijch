@@ -5,7 +5,7 @@
 # DO NOT MODIFY THIS VARIABLE
 .globl lines_of_rvc_codes
 lines_of_rvc_codes:
-    .word 16
+    .word 6
 
 
 # RVC codes, 16-bits instructions mixed with 32-bits instructions
@@ -16,24 +16,13 @@ lines_of_rvc_codes:
 .globl rvc_codes
 rvc_codes:
     
-                      .half 0b1000000010000001
-    .half 0b1000010011010001
-    .word 0b00000000000101000001100101100011
-    .half 0b1000010000000001
-    .half 0b1011111111011101
-    .word 0b00000000101001000010010100100011
-    .word 0b00000000100101000010010010100011
-    .half 0b1100000000000000
-    .word 0b00000000101001000010000110100011
-    .half 0b1111110001110101
-    .word 0b00000000101001000010010100000011
-    .word 0b00000000100101000010010010000011
-    .half 0b0100000000000000
-    .half 0b1111100011100101
-    .word 0b00000000001101000010010100000011
-    .half 0b1011111111010001
 
-
+.half 0b1000010000000010
+.half 0b1001010110000010
+.half 0b1001011010000010
+.half 0b1001010000000010
+.half 0b1001000110000010
+.half 0b1001101100000010
 
 
 
@@ -192,6 +181,150 @@ j loop1_middle #return
 
 
 OneZeroOp:#op 10
+addi sp sp -4
+sw s5 0(sp) #save command to stack
+li t5 0b1110000000000000#get funct3
+and s5 s5 t5#get funct3
+li t6 0#if SLLI
+beq s5 t6 SLLI#if it is slli
+j CrFormat
+
+
+
+OneZeroOp_end:
+lw s5 0(sp)#restore command
+addi sp sp 4
+j SixteenTrans_middle#return
+
+
+SLLI:
+
+
+
+
+
+CrFormat:
+lw s5 0(sp)#restore s5 which is the copy of codes
+srli s5 s5 2#shift right 2 bits
+li t5 0b11111
+and s5 s5 t5#get rs2
+li t6 0
+beq s5 t6 JR_JALR
+j ADD_MV
+
+ADD_MV:
+lw s5 0(sp)#restore s5 which is the copy of codes
+srli s5 s5 12#shift right 12 bits
+li t5 0b1111
+and s5 s5 t5#get funct4
+li t6 0b1001
+beq s5 t6 ADD
+li t6 0b1000
+beq s5 t6 MV
+
+################################################
+ADD:
+lw t1 0(sp)#t1 is the copy of codes
+li t2 0b111110000000
+and t2 t2 t1#t2 = rd / rs1
+li t0 0b1111100
+and t0 t0 t1#t0 = rs2   
+
+srai t2 t2 7
+srai t0 t0 2
+
+li s6 0#initialize s6 which is the answer 
+slli t0 t0 20#shift rs2
+slli t2 t2 15#shift rs1
+add s6 s6 t0
+add s6 s6 t2
+
+srli t2 t2 8#shift rd from rs1
+add s6 s6 t2
+li t0 0b000000000110011#t0 = opcode + funct3 + funct7
+add s6 s6 t0#merge ans
+
+jal PrintAnswer
+j OneZeroOp_end#return
+
+################################################
+
+MV:
+lw t1 0(sp)#t1 is the copy of codes
+li t2 0b111110000000
+and t2 t2 t1#t2 = rd / rs1
+li t0 0b1111100
+and t0 t0 t1#t0 = rs2   
+
+srai t2 t2 7
+srai t0 t0 2
+
+li s6 0#initialize s6 which is the answer 
+slli t0 t0 20#shift rs2
+slli t2 t2 7#shift rd
+add s6 s6 t0
+add s6 s6 t2
+li t0 0b000000000110011#t0 = opcode + funct3 + funct7
+add s6 s6 t0#merge ans
+jal PrintAnswer
+j OneZeroOp_end#return
+
+
+JR_JALR:
+lw s5 0(sp)#restore s5 which is the copy of codes
+srli s5 s5 12#shift right 12 bits
+li t5 0b1111
+and s5 s5 t5#get funct4
+li t6 0b1001
+beq s5 t6 JALR
+li t6 0b1000
+beq s5 t6 JR
+
+
+JALR:
+lw t1 0(sp)#t1 is the copy of codes
+li t2 0b111110000000
+and t2 t2 t1#t2 = rs1
+
+srai t2 t2 7
+
+li s6 0#initialize s6 which is the answer 
+
+slli t2 t2 15#shift rs1
+
+add s6 s6 t2
+
+li t0 0b000000011100111#t0 = opcode + funct3 + imm + rd
+add s6 s6 t0#merge ans
+
+jal PrintAnswer
+j OneZeroOp_end#return
+
+
+
+
+JR:
+lw t1 0(sp)#t1 is the copy of codes
+li t2 0b111110000000
+and t2 t2 t1#t2 = rs1
+
+srai t2 t2 7
+
+li s6 0#initialize s6 which is the answer 
+
+slli t2 t2 15#shift rs1
+
+add s6 s6 t2
+
+li t0 0b000000001100111#t0 = opcode + funct3 + imm + rd
+add s6 s6 t0#merge ans
+
+jal PrintAnswer
+j OneZeroOp_end#return
+
+
+
+
 
 
 
@@ -327,7 +460,7 @@ j ZeroOneOp_end#return
 
 CaFormat:
 lw s5 0(sp)#restore s5 which is the copy of codes
-srli s5 s5 5#shift left 5 bits
+srli s5 s5 5#shift right 5 bits
 li t5 0b11
 and s5 s5 t5#get funct2
 li t6 0b11

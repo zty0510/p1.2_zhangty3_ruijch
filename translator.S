@@ -17,13 +17,6 @@ lines_of_rvc_codes:
 rvc_codes:
     
 
-.half 0b1000010000000010
-.half 0b1001010110000010
-.half 0b1001011010000010
-.half 0b1001010000000010
-.half 0b1001000110000010
-.half 0b1001101100000010
-
 
 
 
@@ -167,14 +160,21 @@ j loop1_middle #return
 ThirttTrans:#32 bit translate
 addi sp sp -8
 sw s3 0(sp)#save command
+sw s8 4(sp)
 add s5 x0 s3 #s5=command
-li t1 0b000000000000000000000000000000011
-mv s6 s5
+li t1 0b000000000000000000000000001111111#get op code
+and t1 t1 s5#get op code
+li s8 0b000000000000000000000000001100011#B format need update
+beq t1 s8 updateOffset32
+mv s6 s5#else print directly
 jal PrintAnswer
+updateOffset32:
+
 
 
 ThirttTrans_middle:
 lw s3 0(sp)#restore s3
+lw s8 4(sp)
 addi sp sp 8
 j loop1_middle #return
 
@@ -918,5 +918,109 @@ jal PrintAnswer
 j ZeroOneOp_end#return
 
 CJAL:
-li s6 0b00000000000000000000000011101111#ans
+lw s5 0(sp)#restore s5 from stack
+li t6 0b00000000000000000001111111111100#imm unordered
+and s7 t6 s5 #store imm unordered to s7
+mv s9 s7 #backup imm unorderd in s9
+li s8 0b0000 #s8 store imm
+slli s7 s7 26#get imm[3:1]
+srli s7 s7 29#get imm[3:1]
+add s8 s8 s7
+mv s7 s9 #restore s7
+slli s7 s7 29#get imm[5]
+srli s7 s7 31#get imm[5]
+slli s7 s7 4#get imm[5]
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 25#get imm[7]
+srli s7 s7 31#get imm[7]
+slli s7 s7 6#put to 7th bit
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 24#get imm[6]
+srli s7 s7 31#get imm[6]
+slli s7 s7 5#put to 6th bit
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 23#get imm[10]
+srli s7 s7 31#get imm[10]
+slli s7 s7 9#put to 10th bit
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 21#get imm[9:8]
+srli s7 s7 30#get imm[9:8]
+slli s7 s7 7#put to 8,9th bit
+add s8 s8 s7
+mv s7 s9
+slli s7 s7 20#get imm[4]
+srli s7 s7 31#get imm[4]
+slli s7 s7 3#put to 4th bit
+add s8 s8 s7
+mv s7 s9
+srli s7 s7 12#get imm[11]
+
+li s10 0b0001#negative
+
+beq s7 s10 cjal_neg#if imm[11]=1 negative
+li s6 0b00000000000000000000000011101111
+slli s8 s8 1#imm[11:0]
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+li s7 0
+li s9 0#store number of commands jumped
+loop_calcOffsetjal2:
+beq s8 s7 loop_calOffsetjal2_end#s8==0 break;
+lw s7 0(s10)
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 4#s10--
+li s7 0
+j loop_calcOffsetjal2#loop
+loop_calOffsetjal2_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+slli s8 s8 21
+srli s8 s8 1
+add s6 s6 s8
+j cjal_ans
+cjal_neg:
+li s6 2149576943#ans
+
+addi s8 s8 0b010000000000
+slli s8 s8 1#imm[11:0]
+mv s10 s8
+lui s8 0xFFFFF
+add s8 s8 s10#get offset origin
+neg s8 s8#abs(s8)
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+addi s10 s10 -4
+li s7 0
+li s9 0#store number of commands jumped
+loop_calcOffsetjal1:
+beq s8 s7 loop_calOffsetjal1_end #if s8==0 break
+lw s7 0(s10)#store cnts[command]to s7
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 -4#s10--
+li s7 0
+j loop_calcOffsetjal1
+loop_calOffsetjal1_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+neg s8 s8
+slli s8 s8 21
+srli s8 s8 1
+add s6 s6 s8
+j cjal_ans
+
+# li a0 1
+# mv a1 s8
+# ecall
+cjal_ans:
+jal PrintAnswer
 j ZeroOneOp_end#return

@@ -1,18 +1,3 @@
-<<<<<<< HEAD
-.data
-
-# Constant integer specifying the lines of RVC codes
-
-# DO NOT MODIFY THIS VARIABLE
-.globl lines_of_rvc_codes
-lines_of_rvc_codes:
-    .word 1
-
-
-# RVC codes, 16-bits instructions mixed with 32-bits instructions
-# A 16/32-bits binary number represents one line of rvc code.
-# You can suppose all of the input codes are valid. 
-=======
 #   Project 1.2 RVC instructions to RISC-V instructions in RISC-V
 
 #   You can suppose you will get the number of machine codes you should translate from 
@@ -23,16 +8,6 @@ lines_of_rvc_codes:
 
 # DO NOT REMOVE THIS LINE WHEN SUBMITTING
 .import input.S
-
-
-  
->>>>>>> ae6abeaa106ce3548b0ab52161b47c3ba32c6d35
-
-# DO NOT MODIFY THIS VARIABLE
-.globl rvc_codes
-rvc_codes:
-.half 0b1100000000000000
-    
     
 # Your code to convert the RVC codes to RVI codes.
 .data

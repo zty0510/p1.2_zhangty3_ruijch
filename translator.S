@@ -1,31 +1,21 @@
-#   Project 1.2 RVC instructions to RISC-V instructions in RISC-V
+.data
 
-#   You can suppose you will get the number of machine codes you should translate from 
-#   "lines_of_rvc_codes" and get the 16 or 32 bits-machine codes from "rvc_codes". 
-#   Both of them are stored in file "input.S"
+# Constant integer specifying the lines of RVC codes
 
-#   When we test your project, we will change the input files content.
-
-# DO NOT REMOVE THIS LINE WHEN SUBMITTING
-.import input.S
+# DO NOT MODIFY THIS VARIABLE
+.globl lines_of_rvc_codes
+lines_of_rvc_codes:
+    .word 1
 
 
+# RVC codes, 16-bits instructions mixed with 32-bits instructions
+# A 16/32-bits binary number represents one line of rvc code.
+# You can suppose all of the input codes are valid. 
 
-
-
-
-
-
-
-
-
-
-
-	
-
-
-  
-
+# DO NOT MODIFY THIS VARIABLE
+.globl rvc_codes
+rvc_codes:
+.half 0b1100000000000000
     
     
 # Your code to convert the RVC codes to RVI codes.
@@ -137,6 +127,10 @@ addi t5 x0 0b000000000000000000000000000000010#t5
 beq s3 t5 OneZeroOp #op 10
 addi t5 x0 0b000000000000000000000000000000001#t5
 beq s3 t5 ZeroOneOp #op 01
+li t5 0
+beq s3 t5 ZeroZeroOp#op 00
+
+
 
 SixteenTrans_middle:
 
@@ -171,6 +165,148 @@ lw s8 4(sp)
 addi sp sp 8
 j loop1_middle #return
 
+
+####################################LW||||SW ##################################
+
+ZeroZeroOp:#op 00
+addi sp sp -4
+sw s5 0(sp) #save command to stack
+li t5 0b1110000000000000#get funct3
+and s5 s5 t5#get funct3
+li t6 0b010#if SLLI
+srai s5 s5 13
+beq s5 t6 LW#if it is lw
+j SW
+
+
+
+
+ZeroZeroOp_end:
+lw s5 0(sp)#restore command
+addi sp sp 4
+j SixteenTrans_middle#return
+
+
+
+LW:
+lw t1 0(sp)#t1 is the copy of codes
+li s6 0b010000000000011 #s6 stores the answer
+li t2 0b11100
+and t2 t2 t1
+srai t2 t2 2# t2 is rd
+mv s7 t2
+jal mapReg
+mv t2 s7
+
+slli t2 t2 7
+add s6 s6 t2
+
+li t3 0b1110000000
+and t3 t3 t1
+srai t3 t3 7# t3 is rs1
+mv s7 t3
+jal mapReg
+mv t3 s7
+slli t3 t3 15
+add s6 s6 t3
+
+li t4 0b1110000000000
+and t4 t4 t1
+srai t4 t4 10# t4 is imm[5:3]
+
+li t5 0b100000
+and t5 t5 t1
+srli t5 t5 5#t5 is imm[6] sign extended
+
+li t6 0b1000000
+and t6 t6 t1
+srli t6 t6 6#t6 is imm[2] 
+
+slli t4 t4 3
+slli t6 t6 2
+add t4 t4 t6# now t4 = imm[5:2]
+
+li t6 1
+beq t5 t6 LW_neg
+
+LW_continue:
+#now t4 = imm[11:0]
+slli t4 t4 20
+add s6 s6 t4
+jal PrintAnswer
+j ZeroZeroOp_end#return
+
+
+
+
+SW:
+lw t1 0(sp)#t1 is the copy of codes
+li s6 0b010000000100011 #s6 stores the answer
+li t2 0b11100
+and t2 t2 t1
+srai t2 t2 2# t2 is rs2
+mv s7 t2
+jal mapReg
+mv t2 s7
+
+slli t2 t2 20
+add s6 s6 t2
+
+li t3 0b1110000000
+and t3 t3 t1
+srai t3 t3 7# t3 is rs1
+mv s7 t3
+jal mapReg
+mv t3 s7
+slli t3 t3 15
+add s6 s6 t3
+
+li t4 0b1110000000000
+and t4 t4 t1
+srai t4 t4 10# t4 is imm[5:3]
+
+li t5 0b100000
+and t5 t5 t1
+srli t5 t5 5#t5 is imm[6] sign extended
+
+li t6 0b1000000
+and t6 t6 t1
+srli t6 t6 6#t6 is imm[2] 
+
+slli t4 t4 3
+slli t6 t6 2
+add t4 t4 t6# now t4 = imm[5:2]
+
+li t6 1
+beq t5 t6 SW_neg
+SW_continue:
+#now t4 = imm[11:0]
+mv t5 t4
+srli t5 t5 5
+slli t5 t5 25#t5 is imm[11:5]
+add s6 s6 t5
+
+li t5 0b11111
+and t4 t4 t5#t4 is imm[4:0]
+slli t4 t4 7
+add s6 s6 t4
+jal PrintAnswer
+j ZeroZeroOp_end#return
+
+
+
+LW_neg:
+neg t4 t4
+slli t4 t4 2
+j LW_continue
+
+SW_neg:
+neg t4 t4
+slli t4 t4 2
+j SW_continue
+
+
+####################################LW||||SW ##################################
 
 
 OneZeroOp:#op 10

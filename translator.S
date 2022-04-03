@@ -1,21 +1,14 @@
-.data
+#   Project 1.2 RVC instructions to RISC-V instructions in RISC-V
 
-# Constant integer specifying the lines of RVC codes
+#   You can suppose you will get the number of machine codes you should translate from 
+#   "lines_of_rvc_codes" and get the 16 or 32 bits-machine codes from "rvc_codes". 
+#   Both of them are stored in file "input.S"
 
-# DO NOT MODIFY THIS VARIABLE
-.globl lines_of_rvc_codes
-lines_of_rvc_codes:
-    .word 6
+#   When we test your project, we will change the input files content.
 
+# DO NOT REMOVE THIS LINE WHEN SUBMITTING
+.import input.S
 
-# RVC codes, 16-bits instructions mixed with 32-bits instructions
-# A 16/32-bits binary number represents one line of rvc code.
-# You can suppose all of the input codes are valid. 
-
-# DO NOT MODIFY THIS VARIABLE
-.globl rvc_codes
-rvc_codes:
-    
 
 
 
@@ -198,8 +191,26 @@ j SixteenTrans_middle#return
 
 
 SLLI:
-
-
+lw s5 0(sp)#restore s5 from stack
+li t6 0b000000000000000000000111110000000#reg
+and s7 s5 t6 #get reg store it to s7
+srli s7 s7 7#put it to low bits
+li t6 0b000000000000000000000000001111100#shamt[4:0]
+and s8 s5 t6#get shamt[4:0]and store it to s8
+srli s8 s8 2#puit it to low bits
+li t6 0b000000000000000000001000000000000#shamt[5]
+and s9 s5 t6#get shamt[5] and put it to s9
+srli s9 s9 7#put it to the 6th bit
+add s9 s9 s8#s9=shamt[5:0]
+li s6 0b000000000000000000001000000010011	#s6 is the answer 
+slli s7 s7 7
+slli s9 s9 20
+add s6 s6 s9#add imm to answer
+add s6 s6 s7#add rd to answer
+slli s7 s7 8
+add s6 s6 s7#add rs1 to answer
+jal PrintAnswer
+j OneZeroOp_end#return
 
 
 

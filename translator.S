@@ -7,7 +7,30 @@
 #   When we test your project, we will change the input files content.
 
 # DO NOT REMOVE THIS LINE WHEN SUBMITTING
-.import input.S
+#.import input.S
+
+
+.data
+
+# Constant integer specifying the lines of RVC codes
+
+# DO NOT MODIFY THIS VARIABLE
+.globl lines_of_rvc_codes
+lines_of_rvc_codes:
+    .word 1
+
+
+# RVC codes, 16-bits instructions mixed with 32-bits instructions
+# A 16/32-bits binary number represents one line of rvc code.
+# You can suppose all of the input codes are valid. 
+
+# DO NOT MODIFY THIS VARIABLE
+.globl rvc_codes
+rvc_codes:
+.half 0b0100011100010100
+
+
+
     
 # Your code to convert the RVC codes to RVI codes.
 .data
@@ -332,13 +355,12 @@ srli t6 t6 6#t6 is imm[2]
 
 slli t4 t4 3
 slli t6 t6 2
-add t4 t4 t6# now t4 = imm[5:2]
+add t4 t4 t6# now t4 = imm[5:0]
 
 li t6 1
 beq t5 t6 LW_neg
 
 LW_continue:
-slli t4 t4 2
 #now t4 = imm[11:0]
 slli t4 t4 20
 add s6 s6 t4
@@ -384,12 +406,11 @@ srli t6 t6 6#t6 is imm[2]
 
 slli t4 t4 3
 slli t6 t6 2
-add t4 t4 t6# now t4 = imm[5:2]
+add t4 t4 t6# now t4 = imm[5:0]
 
 li t6 1
 beq t5 t6 SW_neg
 SW_continue:
-slli t4 t4 2
 #now t4 = imm[11:0]
 mv t5 t4
 srli t5 t5 5

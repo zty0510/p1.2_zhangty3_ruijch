@@ -7,53 +7,53 @@
 #   When we test your project, we will change the input files content.
 
 # DO NOT REMOVE THIS LINE WHEN SUBMITTING
-# .import input.S
+.import input.S
 
 
-.data
+# .data
 
-# Constant integer specifying the lines of RVC codes
+# # Constant integer specifying the lines of RVC codes
 
-# DO NOT MODIFY THIS VARIABLE
-.globl lines_of_rvc_codes
-lines_of_rvc_codes:
-    .word 27
+# # DO NOT MODIFY THIS VARIABLE
+# .globl lines_of_rvc_codes
+# lines_of_rvc_codes:
+#     .word 27
 
 
-# RVC codes, 16-bits instructions mixed with 32-bits instructions
-# A 16/32-bits binary number represents one line of rvc code.
-# You can suppose all of the input codes are valid. 
+# # RVC codes, 16-bits instructions mixed with 32-bits instructions
+# # A 16/32-bits binary number represents one line of rvc code.
+# # You can suppose all of the input codes are valid. 
 
-# DO NOT MODIFY THIS VARIABLE
-.globl rvc_codes
-rvc_codes:
-    .half 0b1000100010101001
-    .half 0b1001100011011001
-    .half 0b1100010010011001
-    .half 0b1000100100000001
-    .half 0b1000100101011001
-    .half 0b1110110100011001
-    .half 0b1001100101110101
-    .half 0b1010000000010001
-    .half 0b1000000001010001
-    .half 0b1000000010000001
-    .half 0b1000010011010001
-    .word 0b00000000000101000001100101100011
-    .half 0b1000010000000001
-    .half 0b1011111111011101
-    .word 0b00000000101001000010010100100011
-    .word 0b00000000100101000010010010100011
-    .half 0b1100000000000000
-    .word 0b00000000101001000010000110100011
-    .half 0b1111110001110101
-    .word 0b00000000101001000010010100000011
-    .word 0b00000000100101000010010010000011
-    .half 0b0100000000000000
-    .half 0b1111100011100101
-    .word 0b00000000001101000010010100000011
-    .half 0b1011111111010001
-    .half 0b0000001101010010
-    .half 0b0000001110000010
+# # DO NOT MODIFY THIS VARIABLE
+# .globl rvc_codes
+# rvc_codes:
+#     .half 0b1000100010101001
+#     .half 0b1001100011011001
+#     .half 0b1100010010011001
+#     .half 0b1000100100000001
+#     .half 0b1000100101011001
+#     .half 0b1110110100011001
+#     .half 0b1001100101110101
+#     .half 0b1010000000010001
+#     .half 0b1000000001010001
+#     .half 0b1000000010000001
+#     .half 0b1000010011010001
+#     .word 0b00000000000101000001100101100011
+#     .half 0b1000010000000001
+#     .half 0b1011111111011101
+#     .word 0b00000000101001000010010100100011
+#     .word 0b00000000100101000010010010100011
+#     .half 0b1100000000000000
+#     .word 0b00000000101001000010000110100011
+#     .half 0b1111110001110101
+#     .word 0b00000000101001000010010100000011
+#     .word 0b00000000100101000010010010000011
+#     .half 0b0100000000000000
+#     .half 0b1111100011100101
+#     .word 0b00000000001101000010010100000011
+#     .half 0b1011111111010001
+#     .half 0b0000001101010010
+#     .half 0b0000001110000010
 
 
 

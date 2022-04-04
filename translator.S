@@ -7,30 +7,53 @@
 #   When we test your project, we will change the input files content.
 
 # DO NOT REMOVE THIS LINE WHEN SUBMITTING
-.import input.S
+# .import input.S
 
 
-# .data
+.data
 
-# # Constant integer specifying the lines of RVC codes
+# Constant integer specifying the lines of RVC codes
 
-# # DO NOT MODIFY THIS VARIABLE
-# .globl lines_of_rvc_codes
-# lines_of_rvc_codes:
-#     .word 4
+# DO NOT MODIFY THIS VARIABLE
+.globl lines_of_rvc_codes
+lines_of_rvc_codes:
+    .word 27
 
 
-# # RVC codes, 16-bits instructions mixed with 32-bits instructions
-# # A 16/32-bits binary number represents one line of rvc code.
-# # You can suppose all of the input codes are valid. 
+# RVC codes, 16-bits instructions mixed with 32-bits instructions
+# A 16/32-bits binary number represents one line of rvc code.
+# You can suppose all of the input codes are valid. 
 
-# # DO NOT MODIFY THIS VARIABLE
-# .globl rvc_codes
-# rvc_codes:
-# .word 0b00000000101001000010010100100011
-# .word 0b00000000100101000010010010100011
-# .half 0b1100000000000000
-# .word 0b00000000101001000010000110100011
+# DO NOT MODIFY THIS VARIABLE
+.globl rvc_codes
+rvc_codes:
+    .half 0b1000100010101001
+    .half 0b1001100011011001
+    .half 0b1100010010011001
+    .half 0b1000100100000001
+    .half 0b1000100101011001
+    .half 0b1110110100011001
+    .half 0b1001100101110101
+    .half 0b1010000000010001
+    .half 0b1000000001010001
+    .half 0b1000000010000001
+    .half 0b1000010011010001
+    .word 0b00000000000101000001100101100011
+    .half 0b1000010000000001
+    .half 0b1011111111011101
+    .word 0b00000000101001000010010100100011
+    .word 0b00000000100101000010010010100011
+    .half 0b1100000000000000
+    .word 0b00000000101001000010000110100011
+    .half 0b1111110001110101
+    .word 0b00000000101001000010010100000011
+    .word 0b00000000100101000010010010000011
+    .half 0b0100000000000000
+    .half 0b1111100011100101
+    .word 0b00000000001101000010010100000011
+    .half 0b1011111111010001
+    .half 0b0000001101010010
+    .half 0b0000001110000010
 
 
 
@@ -571,8 +594,6 @@ jal PrintAnswer
 j OneZeroOp_end#return
 
 
-
-
 JR:
 lw t1 0(sp)#t1 is the copy of codes
 li t2 0b111110000000
@@ -591,14 +612,6 @@ add s6 s6 t0#merge ans
 
 jal PrintAnswer
 j OneZeroOp_end#return
-
-
-
-
-
-
-
-
 
 
 
@@ -626,9 +639,9 @@ beq s5 t6 CBNEZ#bnez
 li t6 0b000000000000000001000000000000000#srli or srai or andi
 beq s5 t6 srlai_judge
 li t6 0b000000000000000001010000000000000#j
-beq s5 t6 CJ
+beq s5 t6 CJ_relay
 li t6 0b000000000000000000010000000000000#jal
-beq s5 t6 CJAL
+beq s5 t6 CJAL_relay
 
 
 ZeroOneOp_end:
@@ -872,13 +885,314 @@ jal PrintAnswer
 j ZeroOneOp_end#return
 
 
+CJ_relay:
+j CJ
+
+CJAL_relay:
+j CJAL
 
 
 
 CBEQZ:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b1111100
+and s7 t6 s5 #store offset[7:6|2:1|5] to s7
+srli s7 s7 2
+
+# li t6 0b1110000000000
+# and s t6 s5 #store offset[7:6|2:1|5] to s7
+
+mv s9 s7 #backup offset[7:6|2:1|5] in s9
+
+li s8 0b0000 #s8 store imm
+
+li t6 0b1
+and t6 t6 s7#t6 is imm[5]
+slli t6 t6 5
+add s8 s8 t6
+
+li t6 0b110
+and t6 t6 s7#t6 is imm[2:1]
+add s8 s8 t6
+
+li t6 0b11000
+and t6 t6 s7
+srai t6 t6 3#t6 is imm[7:6]
+slli t6 t6 6
+add s8 s8 t6
+
+li t6 0b1110000000000
+and s7 t6 s5#store offset[8|4:3] to s7
+srli s7 s7 10
+
+mv s9 s7 #backup offset[8|4:3] in s9
+li t6 0b11
+and t6 t6 s7#t6 is imm[4:3]
+slli t6 t6 3
+add s8 s8 t6#now s8 is[7:0]
+
+li t6 0b100
+and t6 t6 s7
+srai t6 t6 2#t6 is imm[8]
+
+mv s7 t6
+
+li s10 0b0001#negative
+
+beq s7 s10 CBEQZ_neg#if imm[8]=1 negative
+li s6 0b00000000000000000000000001100011
+
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+li s7 0
+li s9 0#store number of commands jumped
+loop_calcOffsetCBEQZ2:
+beq s8 s7 loop_calOffsetCBEQZ2_end#s8==0 break;
+lw s7 0(s10)
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 4#s10--
+li s7 0
+j loop_calcOffsetCBEQZ2#loop
+loop_calOffsetCBEQZ2_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+li t6 0b11110
+and t6 t6 s8
+srai t6 t6 1 #t6 is imm[4:1]
+slli t6 t6 8
+add s6 s6 t6
+
+li t6 0b11100000
+and t6 t6 s8
+srai t6 t6 5#t6 is imm[7:5]
+slli t6 t6 25
+add s6 s6 t6
+
+
+li t6 0b1110000000
+and t6 t6 s5
+srai t6 t6 7#t6 is rs1
+mv s7 t6
+jal mapReg
+mv t6 s7
+slli t6 t6 15
+add s6 s6 t6
+j CBEQZ_ans
+
+CBEQZ_neg:
+li s6 4026532067#ans
+
+addi s8 s8 0b0100000000
+mv s10 s8
+lui s8 0xFFFFF
+add s8 s8 s10#get offset origin
+neg s8 s8#abs(s8)
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+addi s10 s10 -4
+li s7 0
+li s9 0#store number of commands jumped
+loop_calcOffsetCBEQZ:
+beq s8 s7 loop_calOffsetCBEQZ_end #if s8==0 break
+lw s7 0(s10)#store cnts[command]to s7
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 -4#s10--
+li s7 0
+j loop_calcOffsetCBEQZ
+loop_calOffsetCBEQZ_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+neg s8 s8#now s8 is the new offset imm[8:0]
+li t6 0b11110
+and t6 t6 s8
+srai t6 t6 1 #t6 is imm[4:1]
+slli t6 t6 8
+add s6 s6 t6
+
+li t6 0b11100000
+and t6 t6 s8
+srai t6 t6 5#t6 is imm[7:5]
+slli t6 t6 25
+add s6 s6 t6
+
+slli s8 s8 21
+srli s8 s8 1
+add s6 s6 s8
+
+
+li t6 0b1110000000
+and t6 t6 s5
+srai t6 t6 7#t6 is rs1
+mv s7 t6
+jal mapReg
+mv t6 s7
+slli t6 t6 15
+add s6 s6 t6
+j CBEQZ_ans
+
+# li a0 1
+# mv a1 s8
+# ecall
+CBEQZ_ans:
+jal PrintAnswer
 j ZeroOneOp_end#return
 
+#######################################
+
 CBNEZ:
+lw s5 0(sp)#restore s5 from stack
+li t6 0b1111100
+and s7 t6 s5 #store offset[7:6|2:1|5] to s7
+srli s7 s7 2
+
+# li t6 0b1110000000000
+# and s t6 s5 #store offset[7:6|2:1|5] to s7
+
+mv s9 s7 #backup offset[7:6|2:1|5] in s9
+
+li s8 0b0000 #s8 store imm
+
+li t6 0b1
+and t6 t6 s7#t6 is imm[5]
+slli t6 t6 5
+add s8 s8 t6
+
+li t6 0b110
+and t6 t6 s7#t6 is imm[2:1]
+add s8 s8 t6
+
+li t6 0b11000
+and t6 t6 s7
+srai t6 t6 3#t6 is imm[7:6]
+slli t6 t6 6
+add s8 s8 t6
+
+li t6 0b1110000000000
+and s7 t6 s5#store offset[8|4:3] to s7
+srli s7 s7 10
+
+mv s9 s7 #backup offset[8|4:3] in s9
+li t6 0b11
+and t6 t6 s7#t6 is imm[4:3]
+slli t6 t6 3
+add s8 s8 t6#now s8 is[7:0]
+
+li t6 0b100
+and t6 t6 s7
+srai t6 t6 2#t6 is imm[8]
+
+mv s7 t6
+
+li s10 0b0001#negative
+
+beq s7 s10 CBNEZ_neg#if imm[8]=1 negative
+li s6 0b0000000000000000001000001100011
+
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+li s7 0
+li s9 0#store number of commands jumped
+loop_calcOffsetCBNEZ2:
+beq s8 s7 loop_calOffsetCBNEZ2_end#s8==0 break;
+lw s7 0(s10)
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 4#s10--
+li s7 0
+j loop_calcOffsetCBNEZ2#loop
+loop_calOffsetCBNEZ2_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+li t6 0b11110
+and t6 t6 s8
+srai t6 t6 1 #t6 is imm[4:1]
+slli t6 t6 8
+add s6 s6 t6
+
+li t6 0b11100000
+and t6 t6 s8
+srai t6 t6 5#t6 is imm[7:5]
+slli t6 t6 25
+add s6 s6 t6
+
+
+li t6 0b1110000000
+and t6 t6 s5
+srai t6 t6 7#t6 is rs1
+mv s7 t6
+jal mapReg
+mv t6 s7
+slli t6 t6 15
+add s6 s6 t6
+j CBNEZ_ans
+
+CBNEZ_neg:
+li s6 4026536163#ans
+
+addi s8 s8 0b0100000000
+mv s10 s8
+lui s8 0xFFFFF
+add s8 s8 s10#get offset origin
+neg s8 s8#abs(s8)
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+addi s10 s10 -4
+li s7 0
+li s9 0#store number of commands jumped
+loop_calcOffsetCBNEZ:
+beq s8 s7 loop_calOffsetCBNEZ_end #if s8==0 break
+lw s7 0(s10)#store cnts[command]to s7
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 -4#s10--
+li s7 0
+j loop_calcOffsetCBNEZ
+loop_calOffsetCBNEZ_end:
+li s7 4
+mul s8 s9 s7#s8=s9*4
+neg s8 s8#now s8 is the new offset imm[8:0]
+li t6 0b11110
+and t6 t6 s8
+srai t6 t6 1 #t6 is imm[4:1]
+slli t6 t6 8
+add s6 s6 t6
+
+li t6 0b11100000
+and t6 t6 s8
+srai t6 t6 5#t6 is imm[7:5]
+slli t6 t6 25
+add s6 s6 t6
+
+slli s8 s8 21
+srli s8 s8 1
+add s6 s6 s8
+
+
+li t6 0b1110000000
+and t6 t6 s5
+srai t6 t6 7#t6 is rs1
+mv s7 t6
+jal mapReg
+mv t6 s7
+slli t6 t6 15
+add s6 s6 t6
+j CBNEZ_ans
+
+# li a0 1
+# mv a1 s8
+# ecall
+CBNEZ_ans:
+jal PrintAnswer
 j ZeroOneOp_end#return
 
 
@@ -1016,68 +1330,9 @@ jal PrintAnswer
 
 j ZeroOneOp_end#return
 
-
-
 j ZeroOneOp_end#return
 
-mapReg:#s7 store the reg to be mapped,and store the return reg into s7
-addi sp sp -4
-sw t5 0(sp)
-li t5 0b000000
-beq t5 s7 mapZero#s7=000
-li t5 0b000001
-beq t5 s7 mapOne#s7=001
-li t5 0b000010
-beq t5 s7 mapTwo#s7=010
-li t5 0b000011
-beq t5 s7 mapThree#s7=011
-li t5 0b000100
-beq t5 s7 mapFour#s7=012
-li t5 0b000101
-beq t5 s7 mapFive#s7=013
-li t5 0b000110
-beq t5 s7 mapSix#s7=014
-li t5 0b000111
-beq t5 s7 mapSeven#s7=015
 
-
-mapZero:
-li s7 8
-j mapReg_end
-
-mapOne:
-li s7 9
-j mapReg_end
-
-mapTwo:
-li s7 10
-j mapReg_end
-
-
-mapThree:
-li s7 11
-j mapReg_end
-
-mapFour:
-li s7 12
-j mapReg_end
-
-mapFive:
-li s7 13
-j mapReg_end
-
-mapSix:
-li s7 14
-j mapReg_end
-
-mapSeven:
-li s7 15
-j mapReg_end
-
-mapReg_end:
-lw t5 0(sp)
-addi sp sp 4
-jr ra
 
 CJ:
 lw s5 0(sp)#restore s5 from stack
@@ -1294,3 +1549,61 @@ j cjal_ans
 cjal_ans:
 jal PrintAnswer
 j ZeroOneOp_end#return
+
+
+mapReg:#s7 store the reg to be mapped,and store the return reg into s7
+addi sp sp -4
+sw t5 0(sp)
+li t5 0b000000
+beq t5 s7 mapZero#s7=000
+li t5 0b000001
+beq t5 s7 mapOne#s7=001
+li t5 0b000010
+beq t5 s7 mapTwo#s7=010
+li t5 0b000011
+beq t5 s7 mapThree#s7=011
+li t5 0b000100
+beq t5 s7 mapFour#s7=012
+li t5 0b000101
+beq t5 s7 mapFive#s7=013
+li t5 0b000110
+beq t5 s7 mapSix#s7=014
+li t5 0b000111
+beq t5 s7 mapSeven#s7=015
+
+mapZero:
+li s7 8
+j mapReg_end
+
+mapOne:
+li s7 9
+j mapReg_end
+
+mapTwo:
+li s7 10
+j mapReg_end
+
+mapThree:
+li s7 11
+j mapReg_end
+
+mapFour:
+li s7 12
+j mapReg_end
+
+mapFive:
+li s7 13
+j mapReg_end
+
+mapSix:
+li s7 14
+j mapReg_end
+
+mapSeven:
+li s7 15
+j mapReg_end
+
+mapReg_end:
+lw t5 0(sp)
+addi sp sp 4
+jr ra

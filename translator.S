@@ -984,8 +984,8 @@ j CBEQZ_ans
 
 CBEQZ_neg:
 li s6 4026532067#ans
-
-addi s8 s8 0b0100000000
+li s7 0b0111100000000
+add s8 s8 s7
 mv s10 s8
 lui s8 0xFFFFF
 add s8 s8 s10#get offset origin
@@ -1137,7 +1137,8 @@ j CBNEZ_ans
 CBNEZ_neg:
 li s6 4026536163#ans
 
-addi s8 s8 0b0100000000
+li s7 0b0111100000000
+add s8 s8 s7
 mv s10 s8
 lui s8 0xFFFFF
 add s8 s8 s10#get offset origin

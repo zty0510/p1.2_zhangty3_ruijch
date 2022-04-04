@@ -12,25 +12,49 @@
 
 # .data
 
-# # Constant integer specifying the lines of RVC codes
+# Constant integer specifying the lines of RVC codes
 
-# # DO NOT MODIFY THIS VARIABLE
+# DO NOT MODIFY THIS VARIABLE
 # .globl lines_of_rvc_codes
 # lines_of_rvc_codes:
 #     .word 27
 
 
-# # RVC codes, 16-bits instructions mixed with 32-bits instructions
-# # A 16/32-bits binary number represents one line of rvc code.
-# # You can suppose all of the input codes are valid. 
+# RVC codes, 16-bits instructions mixed with 32-bits instructions
+# A 16/32-bits binary number represents one line of rvc code.
+# You can suppose all of the input codes are valid. 
 
-# # DO NOT MODIFY THIS VARIABLE
+# DO NOT MODIFY THIS VARIABLE
 # .globl rvc_codes
 # rvc_codes:
-#     .half 0b1000100010101001
+#         .half 0b1000100010101001
 #     .half 0b1001100011011001
 #     .half 0b1100010010011001
 #     .half 0b1000100100000001
+#     .half 0b1000100101011001
+#     .half 0b1110110100011001
+#     .half 0b1001100101110101
+#     .half 0b1010000000010001
+#     .half 0b1000000001010001
+#     .half 0b1000000010000001
+#     .half 0b1000010011010001
+#     .word 0b00000000000101000001100101100011
+#     .half 0b1000010000000001
+#     .half 0b1011111111011101
+#     .word 0b00000000101001000010010100100011
+#     .word 0b00000000100101000010010010100011
+#     .half 0b1100000000000000
+#     .word 0b00000000101001000010000110100011
+#     .half 0b1111110001110101
+#     .word 0b00000000101001000010010100000011
+#     .word 0b00000000100101000010010010000011
+#     .half 0b0100000000000000
+#     .half 0b1111100011100101
+#     .word 0b00000000001101000010010100000011
+#     .half 0b1011111111010001
+#     .half 0b0000001101010010
+#     .half 0b0000001110000010
+
 
 
 
@@ -168,6 +192,9 @@ li t1 0b000000000000000000000000001111111#get op code
 and t1 t1 s5#get op code
 li s8 0b000000000000000000000000001100011#B format need update
 beq t1 s8 updateOffset32
+li s8 0b000000000000000000000000001101111#J format need update
+beq t1 s8 updateOffset32J
+
 mv s6 s5#else print directly
 jal PrintAnswer
 j ThirttTrans_middle
@@ -293,6 +320,123 @@ slli s8 s8 7#imm[11]
 add s6 s6 s8
 mv s8 s7#restore s8
 jal PrintAnswer
+j ThirttTrans_middle
+
+updateOffset32J:
+li s8 0b0000 #store imm ordered
+mv s6 s5#backup s5 in s6
+slli s5 s5 11 #get imm[11]
+srli s5 s5 31#get imm[11]
+slli s5 s5 10
+add s8 s8 s5
+mv s5 s6#restore s5
+slli s5 s5 1 #get imm[10:1]
+srli s5 s5 22#get imm[10:1]
+add s8 s8 s5
+mv s5 s6#restore s5
+slli s5 s5 12 #get imm[19:12]
+srli s5 s5 24
+slli s5 s5 11#get imm[19:12]
+add s8 s8 s5
+mv s5 s6#restore s5
+
+srli s5 s5 31#get imm[20]
+slli s5 s5 19#get imm[20]
+srli s5 s5 19#put imm[20]to 1th
+li s10 0b000000000000000111111111111#delete imm in original code
+and s6 s6 s10 #delete imm in original code
+
+li s10 0b00001#negative
+beq s5 s10 NegThirtyTwoJ#if imm[12]negative
+slli s8 s8 1 #imm original
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+li s7 0
+li s9 0#store number of commands jumped
+loopThirtyTwoOff2J:
+beq s8 s7 loopThirtyTwoOff2_endJ#s8==0 break;
+lw s7 0(s10)
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 4#s10++
+li s7 0
+j loopThirtyTwoOff2J#loop
+loopThirtyTwoOff2_endJ:
+li s7 4
+mul s8 s9 s7#s8=s9*4 s8 new offset
+srli s8 s8 1#remove imm[0]
+mv s7 s8#store s8 in s7
+slli s8 s8 22#get imm[10:1]
+srli s8 s8 1
+add s6 s6 s8 #put imm[10:1]to answer
+mv s8 s7#restore s8 from s7
+slli s8 s8 21#get imm[11]
+srli s8 s8 31
+slli s8 s8 20
+add s6 s6 s8 #put imm[11]to answer
+mv s8 s7#restore s8 from s7
+slli s8 s8 13#get imm[19:12]
+srli s8 s8 24
+slli s8 s8 12
+add s6 s6 s8 #put imm[19:12]to answer
+mv s8 s7#restore s8 from s7
+slli s8 s8 12#get imm[20]
+srli s8 s8 31
+slli s8 s8 31
+add s6 s6 s8 #put imm[20]to answer
+mv s8 s7#restore s8 from s7
+jal PrintAnswer
+j ThirttTrans_middle#end
+
+
+NegThirtyTwoJ:
+slli s8 s8 1#imm[19:0]
+lui s10 0xFFF
+add s8 s8 s10#imm original
+li s7 4
+mul s10 s11 s7#s10=cur_command*4
+add s10 s10 a3#pointer to cnts[cur_command] 
+li s7 0
+li s9 0#store number of commands jumped
+loopThirtyTwoOff2JN:
+beq s8 s7 loopThirtyTwoOff2_endJN#s8==0 break;
+lw s7 0(s10)
+neg s7 s7
+add s8 s8 s7
+addi s9 s9 1#s9++
+addi s10 s10 4#s10++
+li s7 0
+j loopThirtyTwoOff2JN#loop
+loopThirtyTwoOff2_endJN:
+li s7 4
+mul s8 s9 s7#s8=s9*4 s8 new offset
+srli s8 s8 1#remove imm[0]
+mv s7 s8#store s8 in s7
+slli s8 s8 22#get imm[10:1]
+srli s8 s8 1
+add s6 s6 s8 #put imm[10:1]to answer
+mv s8 s7#restore s8 from s7
+slli s8 s8 21#get imm[11]
+srli s8 s8 31
+slli s8 s8 20
+add s6 s6 s8 #put imm[11]to answer
+mv s8 s7#restore s8 from s7
+slli s8 s8 13#get imm[19:12]
+srli s8 s8 24
+slli s8 s8 12
+add s6 s6 s8 #put imm[19:12]to answer
+mv s8 s7#restore s8 from s7
+slli s8 s8 12#get imm[20]
+srli s8 s8 31
+slli s8 s8 31
+add s6 s6 s8 #put imm[20]to answer
+mv s8 s7#restore s8 from s7
+jal PrintAnswer
+j ThirttTrans_middle#end
+
+
 
 ThirttTrans_middle:
 lw s3 0(sp)#restore s3

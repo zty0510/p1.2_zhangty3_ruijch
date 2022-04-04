@@ -983,13 +983,12 @@ add s6 s6 t6
 j CBEQZ_ans
 
 CBEQZ_neg:
-li s6 4026532067#ans
+li s6 4026536163#ans
 li s7 0b0111100000000
 add s8 s8 s7
 mv s10 s8
-lui s8 0xFFFFF
-add s8 s8 s10#get offset origin
-neg s8 s8#abs(s8)
+li s8 0xFFFFFF00
+or s8 s8 s10#get offset origin
 li s7 4
 mul s10 s11 s7#s10=cur_command*4
 add s10 s10 a3#pointer to cnts[cur_command] 
@@ -999,7 +998,6 @@ li s9 0#store number of commands jumped
 loop_calcOffsetCBEQZ:
 beq s8 s7 loop_calOffsetCBEQZ_end #if s8==0 break
 lw s7 0(s10)#store cnts[command]to s7
-neg s7 s7
 add s8 s8 s7
 addi s9 s9 1#s9++
 addi s10 s10 -4#s10--
@@ -1135,14 +1133,10 @@ add s6 s6 t6
 j CBNEZ_ans
 
 CBNEZ_neg:
-li s6 4026536163#ans
-
-li s7 0b0111100000000
-add s8 s8 s7
+li s6 4026532067#ans
 mv s10 s8
-lui s8 0xFFFFF
-add s8 s8 s10#get offset origin
-neg s8 s8#abs(s8)
+li s8 0xFFFFFF00
+or s8 s8 s10#get offset origin
 li s7 4
 mul s10 s11 s7#s10=cur_command*4
 add s10 s10 a3#pointer to cnts[cur_command] 
@@ -1152,7 +1146,6 @@ li s9 0#store number of commands jumped
 loop_calcOffsetCBNEZ:
 beq s8 s7 loop_calOffsetCBNEZ_end #if s8==0 break
 lw s7 0(s10)#store cnts[command]to s7
-neg s7 s7
 add s8 s8 s7
 addi s9 s9 1#s9++
 addi s10 s10 -4#s10--
